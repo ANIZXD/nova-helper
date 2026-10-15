@@ -1,4 +1,4 @@
-# audio.ps1 — Core Audio volume control (get/set/mute), no external modules.
+# audio.ps1 - Core Audio volume control (get/set/mute), no external modules.
 # Usage: powershell -File audio.ps1 get | set <0-100> | mute | unmute | toggle
 # Prints JSON: { ok, volume (0-100), muted }
 

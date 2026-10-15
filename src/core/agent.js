@@ -32,6 +32,17 @@ Style:
 const MAX_TOOL_OUTPUT = 4000; // chars fed back to the model
 
 /**
+ * Appended to the system prompt when the request came in through the voice app.
+ */
+const VOICE_PROMPT =
+  "\n\nVoice mode: the user SPOKE this request, so the transcription may contain " +
+  "misheard or missing words (names, numbers, app names). Interpret it charitably " +
+  "against the tools you have. Your reply is read aloud by a text-to-speech voice, so " +
+  "answer in 1-3 short plain sentences: no markdown, no bullet lists, no code blocks, " +
+  "no file dumps, and read numbers/units naturally. Only if the intent is truly " +
+  "ambiguous, ask one short clarifying question instead of guessing.";
+
+/**
  * Real environment facts injected into the system prompt so the model uses
  * correct paths instead of inventing placeholders like C:\Users\User\...
  */
@@ -79,8 +90,11 @@ function sig(name, args) {
 async function runTurn({ userMessage, sessionId = "default", ctx = {} }) {
   const emit = ctx.onEvent || (() => {});
   const prior = memory.getMessages(sessionId);
+  let system =
+    SYSTEM_PROMPT + "\n\nEnvironment (use these real paths, never invent placeholders):\n" + envContext();
+  if (ctx.voice) system += VOICE_PROMPT;
   const messages = [
-    { role: "system", content: SYSTEM_PROMPT + "\n\nEnvironment (use these real paths, never invent placeholders):\n" + envContext() },
+    { role: "system", content: system },
     ...prior,
     { role: "user", content: userMessage },
   ];

@@ -69,14 +69,25 @@ function readBody(req) {
 }
 
 /** A confirm gate that blocks until the UI posts /confirm (or times out). */
-function makeConfirmGate() {
+const RISK_ORDER = { low: 0, medium: 1, high: 2 };
+
+/**
+ * @param approveUpTo  'low'|'medium'|'high' — tools at/below this risk are
+ *                     auto-approved (used by the voice app); higher-risk tools
+ *                     go through the normal confirm flow.
+ * @param timeoutMs    How long to wait for the UI (0 = deny immediately).
+ */
+function makeConfirmGate({ approveUpTo = null, timeoutMs = 60000 } = {}) {
+  const cap = approveUpTo && RISK_ORDER[approveUpTo] !== undefined ? RISK_ORDER[approveUpTo] : -1;
   return function confirm(tool, args) {
+    if (cap >= 0 && (RISK_ORDER[tool.risk] ?? 0) <= cap) return Promise.resolve(true);
+    if (!(timeoutMs > 0)) return Promise.resolve(false);
     return new Promise((resolve) => {
       const id = ++confirmSeq;
       const timer = setTimeout(() => {
         pendingConfirms.delete(id);
         resolve(false);
-      }, 60000);
+      }, timeoutMs);
       pendingConfirms.set(id, {
         resolve: (approve) => {
           clearTimeout(timer);
@@ -153,7 +164,7 @@ async function handle(req, res) {
     const body = await readBody(req);
 
     if (p === "/improve") {
-      const r = await improve(body.prompt || "");
+      const r = await improve(body.prompt || "", { voice: !!body.voice });
       return json(res, r.ok ? 200 : 400, { improved: r.output, ok: r.ok });
     }
 
@@ -197,15 +208,21 @@ async function handle(req, res) {
 
     let improved = null;
     if (body.improve) {
-      const r = await improve(message);
+      const r = await improve(message, { voice: !!body.voice });
       improved = r.output;
       message = r.output;
     }
 
     const ctx = {
       dryRun: !!body.dryRun,
+      voice: !!body.voice,
       confirmRisky: body.autoApprove ? false : config.confirmRisky,
-      confirm: body.autoApprove ? null : makeConfirmGate(),
+      confirm: body.autoApprove
+        ? null
+        : makeConfirmGate({
+            approveUpTo: body.approveUpTo || null,
+            timeoutMs: Number.isFinite(Number(body.confirmTimeoutMs)) ? Number(body.confirmTimeoutMs) : 60000,
+          }),
       onEvent: sendEvent,
     };
 

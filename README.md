@@ -48,6 +48,44 @@ nova ask --yes "what's my battery level and current volume?"
 
 > **First run note:** Nova asks for confirmation before `medium`/`high` risk tools. Pass `--yes` to auto-approve in a session, or build a UI that answers the confirm event.
 
+### Voice assistant (desktop app)
+
+There is a small Windows app for **talking to Nova out loud** — and it **answers you aloud**.
+
+```powershell
+npm start          # start the engine (or just run the app; it starts the engine itself)
+npm run voice      # open the Nova Voice window
+```
+
+Or double-click `voice\Start Nova Voice.cmd`.
+
+| Control | What it does |
+|---|---|
+| **TALK / STOP** (round button, or `Ctrl+L`) | Click to listen, click again to release the mic |
+| **Test mic** | One-shot: shows what Nova heard and how confident it was |
+| **Test voice** | Speaks a sentence so you can check your speaker/headphones |
+| **Quick actions** | One-click buttons for common asks (notepad, battery, volume, screenshot...) |
+| Text box + **Send** | Type instead of speaking (works even with the mic off) |
+
+* **Live feedback** — a mic-level meter, a live `Hearing: ...` line, and the final
+  transcript with a confidence score, so you always know it is hearing you.
+* **Understands rough speech** — the transcript is repaired against Nova's
+  vocabulary before it runs (e.g. misheard "better reliable" becomes "battery
+  level"). Toggle with *Fix misheard words*.
+* **Follows your audio devices** — plug in earphones/a headset and it re-binds the
+  mic and the speaker automatically (the current devices are shown in the window).
+* **Noise guard** — short/uncertain phrases are ignored, repeated answers are
+  suppressed, and it says *"Sorry, I didn't catch that"* (and speaks errors) out
+  loud instead of silently failing.
+* **Voice safety** — spoken requests auto-run everyday actions but are **refused**
+  for destructive tools (`delete`, `kill`, `sleep`, ...). Do those in a text session.
+
+Run `npm run voice:check` any time to verify TTS voices, the mic and recognizer,
+and to round-trip synthesised speech through recognition on your machine.
+
+> If the mic is blocked, enable **Settings > Privacy & security > Microphone**
+> (including *Let desktop apps access your microphone*).
+
 ### CLI
 
 | Command | What it does |
@@ -91,15 +129,20 @@ node src/index.js serve --port 20129
 |---|---|---|
 | GET | `/health` | Gateway status, model, tool count |
 | GET | `/tools` | All tool schemas (for building UIs/menus) |
-| POST | `/ask` | `{ message, sessionId?, improve?, dryRun?, autoApprove? }` → `{ text, steps, trace }` |
+| POST | `/ask` | `{ message, sessionId?, improve?, dryRun?, autoApprove?, voice?, approveUpTo?, confirmTimeoutMs? }` → `{ text, steps, trace, improved }` |
 | POST | `/goal` | `{ objective }` → decomposes + executes, streams `goal_*` events |
-| POST | `/improve` | `{ prompt }` → rewritten instruction |
+| POST | `/improve` | `{ prompt, voice? }` → rewritten instruction (voice = repair misheard speech) |
 | POST | `/confirm` | `{ id, approve }` — answer a pending risky-action prompt |
 | GET | `/events` | **SSE stream**: `step`, `tool_call`, `tool_result`, `confirm_request`, `goal_*`, `final`, `error` |
 | GET | `/audit` | Recent tool-call audit log |
 | POST | `/clear` | Reset session memory |
 
 **Risky-action flow:** the engine pauses and emits `confirm_request` over SSE → your UI shows a dialog → `POST /confirm` → execution continues. Nothing destructive runs without an approval.
+
+**Voice flow (how the app uses it):** send `voice: true` (spoken-reply style),
+`improve: true` (repair misheard words) and `approveUpTo: "medium"` with
+`confirmTimeoutMs: 0`. Everyday tools then run immediately, while anything above
+the tier is **denied instantly** instead of stalling on a confirm prompt.
 
 Minimal UI you can paste into an `.html` file and open:
 
