@@ -1,0 +1,43 @@
+{
+  "name": "nova-helper",
+  "version": "0.2.0",
+  "description": "Nova Helper — a whole-PC assistant engine for Windows. Turns natural language into real actions (apps, files, keyboard, mouse, volume, screenshots, coding agents) via an LLM tool loop, with a CLI and an HTTP + SSE API any UI can drive.",
+  "keywords": [
+    "assistant",
+    "agent",
+    "llm",
+    "function-calling",
+    "windows",
+    "automation",
+    "desktop",
+    "voice-assistant",
+    "mcp",
+    "opencode",
+    "omniroute"
+  ],
+  "license": "MIT",
+  "type": "commonjs",
+  "main": "src/index.js",
+  "bin": {
+    "nova": "src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js serve",
+    "test": "node scripts/smoke.js",
+    "doctor": "node src/index.js doctor",
+    "tools": "node src/index.js tools",
+    "ask": "node src/index.js ask",
+    "goal": "node src/index.js goal",
+    "chat": "node src/index.js chat"
+  },
+  "files": [
+    "src/",
+    "scripts/",
+    "README.md",
+    "CONTRIBUTING.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  }
+}
