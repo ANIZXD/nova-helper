@@ -288,12 +288,16 @@ node scripts/test-vision.js   # probe which models accept image input
 
 **v0.2 — shipped:** 48 tools · CLI · HTTP/SSE API · goal mode · audit log · retry/fallback · environment-aware paths · prompt improver.
 
+**Voice desktop app — shipped:** always-listening toggle with live feedback, spoken answers, speech repair, audio-device following, spoken "didn't understand"/error feedback, and a noise/repeat guard (see [Voice assistant](#voice-assistant-desktop-app)).
+
 **Planned:**
-- 🔊 Voice input: global hotkey → STT → `/ask`
+- 🔊 Push-to-talk global hotkey (the app already has a TALK toggle; a system-wide hotkey is next)
 - 👁️ Vision: screen Q&A + click-by-coordinates (tool code exists; waiting on a gateway that accepts image payloads)
 - 🕐 Triggers & schedules ("remind me at 6")
 - ⏪ Undo journal for reversible actions
 - 📦 Per-app volume control
+
+See [TODO.md](TODO.md) for the concrete open items.
 
 ## Related
 

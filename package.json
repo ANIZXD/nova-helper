@@ -38,6 +38,7 @@
     "voice/",
     "README.md",
     "CONTRIBUTING.md",
+    "TODO.md",
     "LICENSE"
   ],
   "engines": {
